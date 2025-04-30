@@ -1,0 +1,155 @@
+<p style="color: green"><%= notice %></p>
+
+<h1 style="font-size: 28px; font-weight: bold; text-align: center; color: #333; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 3px solid #007bff; display: inline-block;">Mentors</h1>
+
+<!-- Centering Container -->
+<div style="margin: 0 auto;">
+
+  <!-- Search Bar and Filters Container -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 10px; box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+
+    <!-- Search Type Dropdown -->
+    <select id="search-type" class="form-control" 
+      style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
+      <option value="name">Search by Name</option>
+      <option value="profession">Search by Profession</option>
+    </select>
+
+    <!-- Search Input -->
+    <input type="text" id="mentor-search" placeholder="Search mentors..." class="form-control" 
+      style="flex: 1; min-width: 250px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; transition: all 0.3s ease; box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);" 
+      onfocus="this.style.borderColor='#007bff'; this.style.boxShadow='0px 0px 8px rgba(0, 123, 255, 0.3)';" 
+      onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';">
+    
+    <!-- Mentor Type Filter -->
+    <select id="mentor-type-filter" class="form-control" 
+      style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
+      <option value="all">All Mentor Types</option>
+      <% MentorType.all.each do |mentor_type| %>
+        <option value="<%= mentor_type.id %>"><%= mentor_type.name %></option>
+      <% end %>
+    </select>
+
+    <!-- Specialty Filter (Hidden Initially) -->
+    <div id="specialty-filter-container"">
+      <select id="specialty-filter" class="form-control" 
+        style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
+        <option value="all">All Specialties</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Mentor List -->
+  <div id="mentors" style="padding: 20px;">
+    <%= render partial: 'mentors_list' %>
+  </div>
+
+</div>
+
+<!-- JavaScript for Search and Filtering -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const mentorTypeSelect = document.getElementById('mentor-type-filter');
+  const specialtySelect = document.getElementById('specialty-filter');
+  
+  // Initially disable the specialty dropdown
+  specialtySelect.disabled = true;
+  specialtySelect.style.backgroundColor = '#f8f9fa'; // Grey out the background
+
+  // Handle Mentor Type Filter Change
+  mentorTypeSelect.addEventListener('change', function() {
+    let mentorTypeId = this.value;
+
+    // If "All Mentor Types" is selected, disable and grey out the specialty dropdown
+    if (mentorTypeId === "all") {
+      specialtySelect.disabled = true;
+      specialtySelect.style.backgroundColor = '#f8f9fa'; // Grey out the background
+      specialtySelect.innerHTML = '<option value="all">All Specialties</option>'; // Reset options
+    } else {
+      // Enable the specialty dropdown and update the background color
+      specialtySelect.disabled = false;
+      specialtySelect.style.backgroundColor = 'white';
+      
+      // Fetch and populate specialties based on selected mentor type
+      fetch(`/mentors/specialties?mentor_type_id=${mentorTypeId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        specialtySelect.innerHTML = '<option value="all">All Specialties</option>'; // Reset options
+
+        if (data.specialties && data.specialties.length > 0) {
+          data.specialties.forEach(specialty => {
+            let option = document.createElement('option');
+            option.value = specialty.id;
+            option.textContent = specialty.name;
+            specialtySelect.appendChild(option);
+          });
+        } else {
+          let option = document.createElement('option');
+          option.textContent = 'No specialties available';
+          specialtySelect.appendChild(option);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching specialties:', error);
+      });
+    }
+  });
+
+  // Trigger search when mentor type or specialty is selected
+  mentorTypeSelect.addEventListener('change', function() {
+    triggerSearch();
+  });
+
+  specialtySelect.addEventListener('change', function() {
+    triggerSearch();
+  });
+
+  // Debounce search function to handle user typing
+  let debounceTimeout;
+  function debounceSearch() {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(function() {
+      triggerSearch();
+    }, 500);
+  }
+
+  // Trigger search logic based on the filters
+  function triggerSearch() {
+    let query = document.getElementById('mentor-search').value;
+    let searchType = document.getElementById('search-type').value;
+    let mentorType = mentorTypeSelect.value;
+    let specialty = specialtySelect.value;
+
+    // Make the fetch request with the updated parameters
+    fetch(`/mentors/search?query=${encodeURIComponent(query)}&search_type=${searchType}&mentor_type=${mentorType}&specialty=${specialty}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/javascript'
+      }
+    })
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('mentors').innerHTML = html;
+    })
+    .catch(error => {
+      console.error('Search request failed:', error);
+    });
+  }
+
+  // Handle search input event
+  document.getElementById('mentor-search').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      triggerSearch();
+    } else {
+      debounceSearch();  // Trigger debounce search when user types
+    }
+  });
+});
+
+</script>

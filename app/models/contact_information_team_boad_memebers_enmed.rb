@@ -1,0 +1,2 @@
+class ContactInformationTeamBoadMemebersEnmed < ApplicationRecord
+end

@@ -1,0 +1,5 @@
+<% if @userSubtype == "mentor" %>
+  <%= render partial: 'users/mentor_form', locals: { mentor: @userSub } %>
+<% else %>
+  <%= render partial: 'users/student_form', locals: { student: @userSub } %>
+<% end %>

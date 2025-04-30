@@ -1,0 +1,174 @@
+<%= form_with(model: student, url: student_path(student), method: :patch, local: true, html: { id: 'student_form', class: 'max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md' }) do |f| %>
+  <%= f.fields_for :user do |u| %>
+    <%= u.hidden_field :id %>
+
+    <div class="mb-4">
+      <%= u.label :first_name, "First Name", class: "block font-medium text-gray-700" %>
+      <%= u.text_field :first_name, value: student.user.first_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div class="mb-4">
+      <%= u.label :last_name, "Last Name", class: "block font-medium text-gray-700" %>
+      <%= u.text_field :last_name, value: student.user.last_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div class="mb-4">
+      <%= u.label :email, "Email", class: "block font-medium text-gray-700" %>
+      <%= u.email_field :email, value: student.user.email, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div class="mb-4">
+      <%= u.label :phone_number, "Phone Number (10 digits)", class: "block font-medium text-gray-700" %>
+      <%= u.telephone_field :phone_number, 
+          value: student.user.phone_number,
+          class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300",
+          pattern: "^[0-9]{10}$", 
+          placeholder: "1234567890", 
+          title: "Please enter a 10-digit phone number",
+          maxlength: "10" %>
+    </div>
+  <% end %>
+
+  <div class="mb-4">
+    <%= f.label :major, "Major", class: "block font-medium text-gray-700" %>
+    <%= f.text_field :major, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300", value: student.major %>
+  </div>
+
+  <%= puts student.major %>
+  <div class="mb-4">
+    <%= f.label :classification, "Classification", class: "block font-medium text-gray-700" %>
+    <%= f.select :classification, 
+          Student.classifications.keys.map { |c| [c.titleize, c] }, 
+          { prompt: "Select Classification" }, 
+          class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300", 
+          required: true, 
+          selected: student.classification %>
+  </div>
+
+  <div class="mb-4">
+    <%= f.label :mentor_type_id, "Specialty Type", class: "block font-medium text-gray-700" %>
+    <%= f.collection_select :mentor_type_id, MentorType.all, :id, :name, 
+          { selected: student.mentor_type_id || MentorType.first&.id }, 
+          { 
+            id: "student_mentor_type_id", 
+            class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300",
+            prompt: "Select Specialty Type" 
+          } %>
+  </div>
+  
+  <div class="mb-4">
+    <%= f.label :specialty_ids, "Specialties", class: "block font-medium text-gray-700" %>
+    <div id="specialties-container" class="flex flex-wrap gap-2 mt-2"></div>
+    <div id="specialty-hidden-inputs">
+      <% student.specialty_ids.each do |id| %>
+        <input type="hidden" name="student[specialty_ids][]" value="<%= id %>">
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex justify-end">
+    <%= f.submit "Update Student", class: "px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const studentForm = document.getElementById('student_form');
+  const mentorTypeSelect = document.getElementById('student_mentor_type_id');
+  const specialtiesContainer = document.getElementById('specialties-container');
+  const phoneNumberInput = document.querySelector('input[type="tel"]');
+
+  function validatePhoneNumber() {
+    if (!phoneNumberInput.value) return true;
+    const isValid = /^[0-9]{10}$/.test(phoneNumberInput.value);
+    if (!isValid) {
+      phoneNumberInput.setCustomValidity("Please enter exactly 10 digits");
+    } else {
+      phoneNumberInput.setCustomValidity("");
+    }
+    return isValid;
+  }
+
+  phoneNumberInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '');
+    validatePhoneNumber();
+  });
+
+  function getSelectedSpecialtyIds() {
+    return Array.from(document.querySelectorAll('#specialty-hidden-inputs input'))
+      .map(input => input.value);
+  }
+
+  function populateSpecialties(mentorTypeName) {
+    if (!mentorTypeName || mentorTypeName === "Select Specialty Type") {
+      specialtiesContainer.innerHTML = '';
+      document.getElementById('specialty-hidden-inputs').innerHTML = '';
+      return;
+    }
+
+    fetch(`/specialties?mentor_name=${encodeURIComponent(mentorTypeName)}`)
+      .then(response => response.json())
+      .then(data => {
+        specialtiesContainer.innerHTML = '';
+        const hiddenInputsContainer = document.getElementById('specialty-hidden-inputs');
+        const currentlySelectedIds = getSelectedSpecialtyIds();
+
+        data.forEach(specialty => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.classList.add('specialty-button', 'px-4', 'py-2', 'border', 'rounded-md', 'transition', 'hover:bg-gray-200');
+          button.textContent = specialty.name;
+          button.dataset.id = specialty.id;
+
+          if (currentlySelectedIds.includes(specialty.id.toString())) {
+            button.classList.add('bg-blue-500', 'text-white');
+          }
+
+          button.addEventListener('click', function() {
+            this.classList.toggle('bg-blue-500');
+            this.classList.toggle('text-white');
+            updateSpecialtiesInput();
+          });
+
+          specialtiesContainer.appendChild(button);
+        });
+      })
+      .catch(error => console.error('Error fetching specialties:', error));
+  }
+
+  function updateSpecialtiesInput() {
+    const selectedButtons = Array.from(document.querySelectorAll('.specialty-button.bg-blue-500'));
+    const hiddenInputsContainer = document.getElementById('specialty-hidden-inputs');
+    
+    hiddenInputsContainer.innerHTML = '';
+    
+    selectedButtons.forEach(button => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'student[specialty_ids][]';
+      input.value = button.dataset.id;
+      hiddenInputsContainer.appendChild(input);
+    });
+  }
+
+  mentorTypeSelect.addEventListener('change', function() {
+    const mentorTypeName = mentorTypeSelect.options[mentorTypeSelect.selectedIndex].text;
+    populateSpecialties(mentorTypeName);
+  });
+
+  studentForm.addEventListener('submit', function(event) {
+    phoneNumberInput.setCustomValidity("");
+    if (phoneNumberInput.value && !validatePhoneNumber()) {
+      event.preventDefault();
+      phoneNumberInput.reportValidity();
+      return;
+    }
+  });
+
+  // Initialize with current mentor type's specialties
+  const currentMentorTypeName = mentorTypeSelect.options[mentorTypeSelect.selectedIndex].text;
+  if (currentMentorTypeName !== "Select Specialty Type") {
+    populateSpecialties(currentMentorTypeName);
+  }
+});
+</script>

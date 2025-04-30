@@ -1,0 +1,228 @@
+<!-- app/views/admin/show.html.erb -->
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">User Details</h1>
+    <div>
+      <%= link_to admin_index_path, class: 'inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Back to List
+      <% end %>
+      <%= link_to edit_admin_path(@user), class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+        </svg>
+        Edit User
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="md:col-span-1">
+      <div class="bg-white shadow rounded-lg mb-6">
+        <div class="border-b border-gray-200 px-6 py-4">
+          <h2 class="text-lg font-medium">Basic Information</h2>
+        </div>
+        <div class="p-6">
+          <div class="text-center mb-6">
+            <% if @user.image.present? %>
+              <%= image_tag @user.image, class: 'rounded-full mx-auto', width: 120, height: 120, style: 'object-fit: cover;' %>
+            <% else %>
+              <div class="flex justify-center items-center w-24 h-24 rounded-full bg-gray-100 mx-auto text-3xl font-medium text-gray-600">
+                <%= @user.first_name[0].upcase %><%= @user.last_name[0].upcase %>
+              </div>
+            <% end %>
+            <h3 class="mt-4 text-lg font-medium text-gray-900"><%= "#{@user.first_name} #{@user.last_name}" %></h3>
+            <div class="mt-1">
+              <% if @user.role == "mentor" %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Mentor</span>
+              <% elsif @user.role == "student" %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Student</span>
+              <% else %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Other</span>
+              <% end %>
+              <% if @user.isAdmin %>
+                <span class="ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Admin</span>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 -mx-6">
+            <dl>
+              <div class="px-6 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.email %></dd>
+              </div>
+              <div class="px-6 py-4 sm:grid sm:grid-cols-3 sm:gap-4 bg-gray-50">
+                <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right">
+                  <%= @user.phone_number.present? ? "(#{@user.phone_number[0..2]}) #{@user.phone_number[3..5]}-#{@user.phone_number[6..9]}" : "Not provided" %>
+                </dd>
+              </div>
+              <div class="px-6 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Role</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.role.capitalize if @user.role.present? %></dd>
+              </div>
+              <div class="px-6 py-4 sm:grid sm:grid-cols-3 sm:gap-4 bg-gray-50">
+                <dt class="text-sm font-medium text-gray-500">Member since</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.created_at.strftime("%B %d, %Y") %></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="md:col-span-2">
+      <% if @userSubtype == "mentor" && @user.mentor.present? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-lg font-medium">Mentor Details</h2>
+          </div>
+          <div class="p-6">
+            <dl class="divide-y divide-gray-200">
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Profession</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.mentor.profession.present? ? @user.mentor.profession : "Not specified" %></dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Specialty</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right">
+                  <% if @user.mentor.specialties.any? %>
+                    <div>
+                      <%= @user.mentor.specialties.map(&:name).join(', ') %>
+                    </div>
+                  <% else %>
+                    <span class="text-gray-500">Not specified</span>
+                  <% end %>
+                </dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Mentor Type</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.mentor.mentor_type.present? ? @user.mentor.mentor_type.name : "Not specified" %></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        
+      <% elsif @userSubtype == "student" && @user.student.present? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-lg font-medium">Student Details</h2>
+          </div>
+          <div class="p-6">
+            <dl class="divide-y divide-gray-200">
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Major</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.student.major.present? ? @user.student.major : "Not specified" %></dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Classification</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right"><%= @user.student.classification.present? ? @user.student.classification : "Not specified" %></dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Specialty</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 text-right">
+                  <% if @user.student.specialties.any? %>
+                    <div>
+                      <%= @user.student.specialties.map(&:name).join(', ') %>
+                    </div>
+                  <% else %>
+                    <span class="text-gray-500">Not specified</span>
+                  <% end %>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+      <% end %>
+
+      <div class="bg-white shadow rounded-lg">
+        <div class="border-b border-gray-200 px-6 py-4">
+          <h2 class="text-lg font-medium">Questions & Comments</h2>
+        </div>
+        <div class="p-6">
+          <% questions = @user.questions.order(created_at: :desc) %>
+          <% if questions.any? %>
+            <div class="space-y-4">
+              <% questions.each_with_index do |question, index| %>
+                <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
+                  <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <button class="flex w-full justify-between items-center focus:outline-none" type="button" 
+                            data-toggle="collapse" data-target="#question<%= index %>"
+                            aria-expanded="<%= index == 0 ? 'true' : 'false' %>" aria-controls="question<%= index %>">
+                      <h3 class="text-sm font-medium text-gray-900">
+                        <%= link_to question.question, question_path(question), class: "text-blue-600 hover:underline" %>
+                      </h3>
+                      <div class="flex items-center">
+                        <span class="text-xs text-gray-500"><%= question.created_at.strftime("%b %d, %Y") %></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                    </button>
+                  </div>
+                  <div id="question<%= index %>" class="<%= index == 0 ? '' : 'hidden' %>">
+                    <div class="px-4 py-3">
+                      <p class="text-sm text-gray-700"><%= question.description %></p>
+                      
+                      <% if question.comments.any? %>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                          <h4 class="text-sm font-medium text-gray-900 mb-3">Comments (<%= question.comments.count %>)</h4>
+                          <div class="space-y-3">
+                            <% question.comments.order(created_at: :asc).each do |comment| %>
+                              <div class="p-3 <%= comment.user_id == @user.id ? 'bg-gray-50' : 'border-l-4 border-indigo-500' %> rounded">
+                                <div class="flex justify-between items-center mb-2">
+                                  <div>
+                                    <span class="text-sm font-medium text-gray-900"><%= "#{comment.user.first_name} #{comment.user.last_name}" %></span>
+                                    <% if comment.user.role == "mentor" %>
+                                      <span class="ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Mentor</span>
+                                    <% end %>
+                                  </div>
+                                  <span class="text-xs text-gray-500"><%= comment.created_at.strftime("%b %d, %Y %I:%M %p") %></span>
+                                </div>
+                                <p class="text-sm text-gray-700"><%= comment.content %></p>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      <% else %>
+                        <p class="mt-3 text-sm text-gray-500">No comments yet.</p>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="py-8 text-center">
+              <p class="text-gray-500">User hasn't asked any questions yet.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for toggling questions -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('[data-toggle="collapse"]');
+    
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const target = document.querySelector(this.getAttribute('data-target'));
+        if (target.classList.contains('hidden')) {
+          target.classList.remove('hidden');
+          this.setAttribute('aria-expanded', 'true');
+        } else {
+          target.classList.add('hidden');
+          this.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+  });
+</script>

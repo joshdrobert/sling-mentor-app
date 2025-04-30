@@ -1,0 +1,82 @@
+<div class="fixed inset-0 flex items-center justify-center">
+  <div class="p-6 bg-white rounded-lg question-wrapper">
+    <h2 class="mb-4 text-lg font-bold">Update Question</h2>
+    <%= form_with model: @question, url: question_path(@question), method: :patch, local: true, html: { id: 'question-form' } do |form| %>
+      <!-- Title Field -->
+      <div class="mb-4">
+        <%= form.label :question, class: 'block' do %>
+          Title <span>*</span>
+        <% end %>
+        <%= form.text_field :question, 
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-md', 
+            required: true, 
+            minlength: 3, 
+            maxlength: 100,
+            value: @question.question # Prefill with existing question 
+        %>
+      </div>
+
+      <!-- Description Field -->
+      <div class="mb-4">
+        <%= form.label :description, class: 'block' do %>
+          Description
+        <% end %>
+        <%= form.text_area :description, 
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-md',
+            value: @question.description # Prefill with existing description
+        %>
+      </div>
+
+      <!-- Mentor Type & Specialty -->
+      <div class="flex mb-4 mentor-specialty-dropdowns">
+        <div style="margin-right: 60px;">
+          <%= form.label :mentor_type, class: 'block' do %>
+            Mentor Type <span>*</span>
+          <% end %>
+          <%= form.select :mentor_type, 
+              MentorType.pluck(:name).uniq, 
+              { 
+                include_blank: 'Select Mentor Type', 
+                selected: MentorType.find_by(id: @question.mentor_type_id)&.name
+              }, 
+              { 
+                class: 'form-control mentor-select', 
+                required: true, 
+                style: 'display: inline-block; padding: 5px;' 
+              } 
+          %>
+        </div>
+        <div>
+          <%= form.label :specialty, class: 'block' do %>
+            Specialty
+          <% end %>
+          <%= form.select :specialty, 
+              [Specialty.find_by(id: @question.specialty_id)&.name], 
+              { 
+                include_blank: 'Select a specialty', 
+                selected: Specialty.find_by(id: @question.specialty_id)&.name
+              }, 
+              { 
+                class: 'form-control specialty-select', 
+                style: 'padding: 5px;' 
+              } 
+          %>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <%= link_to "Back", :back, 
+            class: "px-4 py-2 text-gray-800 border border-gray-800 rounded", 
+            style: "margin-right: 30px;" 
+        %>
+        <%= form.submit "Update", 
+            class: "px-4 py-2 text-white bg-blue-500 rounded",
+               style: "cursor: pointer;" ,
+            data: { 
+              disable_with: "Updating..." # Prevents multiple submissions
+            }
+        %>
+      </div>
+    <% end %>
+  </div>
+</div>

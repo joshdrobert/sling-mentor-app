@@ -1,0 +1,156 @@
+commit 84722bb88bd908724e34031faab1cf453156688a
+Author: Elvis Chen <elvischen291@gmail.com>
+Date:   Mon Apr 7 21:11:21 2025 -0500
+
+    Fix job
+
+diff --git a/app/mailers/application_mailer.rb b/app/mailers/application_mailer.rb
+index 0103093..7158bf7 100644
+--- a/app/mailers/application_mailer.rb
++++ b/app/mailers/application_mailer.rb
+@@ -1,4 +1,5 @@
+ class ApplicationMailer < ActionMailer::Base
+-  default from: 'noreply@gmail.com'
++  default from: 'noreply@yourdomain.com',  # Use your actual domain, not gmail
++         reply_to: 'support@yourdomain.com' # Add a proper reply-to address
+   layout 'mailer'
+-end
++end
+\ No newline at end of file
+diff --git a/app/mailers/send_daily_mentor_notification_job.rb b/app/mailers/send_daily_mentor_notification_job.rb
+index 390f30d..764c539 100644
+--- a/app/mailers/send_daily_mentor_notification_job.rb
++++ b/app/mailers/send_daily_mentor_notification_job.rb
+@@ -19,7 +19,7 @@ class SendDailyMentorNotificationJob < ApplicationJob
+             mentors_scope = mentors_scope.joins(:specialties)
+                             .where(specialties: { id: question.specialty_id })
+             end
+-            matching_mentors.each do |mentor|
++            mentors_scope.each do |mentor|
+                 next if mentor.user == question.user
+                 next if emailed_mentor_ids.include?(mentor.id)
+                 # Send a notification email to each mentor
+diff --git a/app/views/notification_mailer/daily_comment_summary.html.erb b/app/views/notification_mailer/daily_comment_summary.html.erb
+index e119fd9..40edbc7 100644
+--- a/app/views/notification_mailer/daily_comment_summary.html.erb
++++ b/app/views/notification_mailer/daily_comment_summary.html.erb
+@@ -1,15 +1,36 @@
+ <p>Hello <%= @question.user.first_name %>,</p>
+ 
+-<p>Here is a summary of comments on your question: "<%= @question.question %>"</p>
+-
+-<ul>
+-  <% @comments.each do |comment| %>
+-    <li>
+-      <strong><%= comment.user.first_name %> <%= comment.user.last_name %> comment:</strong> <%= comment.content %>
+-      <p><small>Posted <%= time_ago_in_words(comment.created_at) %> ago</small></p>
+-    </li>
+-  <% end %>
+-</ul>
+-<p>...</p>
+-
+-<p>Click <a href="<%= question_url(@question) %>">here</a> to view the full discussion.</p>
++<p>
++  Here's a quick summary of the latest comments on your question:
++  <strong>"<%= @question.question %>"</strong>
++</p>
++
++<hr>
++
++<% @comments.each do |comment| %>
++  <div style="margin-bottom: 20px;">
++    <p style="margin: 0;">
++      <strong><%= comment.user.first_name %> <%= comment.user.last_name %></strong> said:
++    </p>
++    <blockquote style="margin: 8px 0; padding-left: 10px; border-left: 3px solid #ccc;">
++      <%= comment.content %>
++    </blockquote>
++    <p style="font-size: 12px; color: #888; margin-top: 0;">
++      Posted <%= time_ago_in_words(comment.created_at) %> ago
++    </p>
++  </div>
++<% end %>
++
++<hr>
++
++<p>
++  To view the full discussion or reply to comments, click below:
++</p>
++
++<p>
++  <a href="<%= question_url(@question) %>" style="background: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">
++    View Full Discussion
++  </a>
++</p>
++
++<p>Thanks,<br>The Slinghealth Team</p>
+diff --git a/app/views/notification_mailer/daily_mentor_notification.html.erb b/app/views/notification_mailer/daily_mentor_notification.html.erb
+index dee457a..35db41a 100644
+--- a/app/views/notification_mailer/daily_mentor_notification.html.erb
++++ b/app/views/notification_mailer/daily_mentor_notification.html.erb
+@@ -1,5 +1,16 @@
+ <p>Hello <%= @user.first_name %>,</p>
+ 
+-<p>You have questions being asked related your field, within the last 24 hours. Feel free to answer at your earliest convenience.</p>
++<p>
++  New questions related to your expertise have been asked in the past 24 hours.
++  We’d love your input — feel free to share your insights at your convenience.
++</p>
+ 
+-<p>Click <a href="<%= user_path(@user) %>">here</a> to view.</p>
++<p>
++  <a href="<%= user_url(@user) %>" style="background-color: #4CAF50; color: white; padding: 10px 16px; text-decoration: none; border-radius: 5px;">
++    View Questions
++  </a>
++</p>
++
++<p>Thank you for being an important part of our community!</p>
++
++<p>Best,<br>The Slinghealth Team</p>
+diff --git a/app/views/notification_mailer/mention_notification.html.erb b/app/views/notification_mailer/mention_notification.html.erb
+index f2d430c..ede9c90 100644
+--- a/app/views/notification_mailer/mention_notification.html.erb
++++ b/app/views/notification_mailer/mention_notification.html.erb
+@@ -1,14 +1,33 @@
+ <p>Hello <%= @user.first_name %>,</p>
+ 
+-<p>Someone replied to your comment:</p>
++<p>
++  Someone has replied to your comment on the discussion thread. Here's what they said:
++</p>
+ 
+-<ul>
+-    <li>
+-      <strong><%= @comment.user.first_name %> <%= @comment.user.last_name %> comment:</strong> <%= @comment.content %>
+-      <p><small>Posted <%= time_ago_in_words(@comment.created_at) %> ago</small></p>
+-    </li>
+-</ul>
++<hr>
+ 
+-<p>...</p>
++<div style="margin: 16px 0;">
++  <p style="margin: 0;">
++    <strong><%= @comment.user.first_name %> <%= @comment.user.last_name %></strong> wrote:
++  </p>
++  <blockquote style="margin: 8px 0; padding-left: 12px; border-left: 3px solid #ccc;">
++    <%= @comment.content %>
++  </blockquote>
++  <p style="font-size: 12px; color: #888; margin-top: 0;">
++    Posted <%= time_ago_in_words(@comment.created_at) %> ago
++  </p>
++</div>
+ 
+-<p>Click <a href="<%= question_url(@question) %>">here</a> to view the full discussion.</p>
++<hr>
++
++<p>
++  Click the button below to view the full discussion and reply:
++</p>
++
++<p>
++  <a href="<%= question_url(@question) %>" style="background-color: #4CAF50; color: white; padding: 10px 16px; text-decoration: none; border-radius: 5px;">
++    View Discussion
++  </a>
++</p>
++
++<p>Thanks,<br>The Slinghealth Team</p>

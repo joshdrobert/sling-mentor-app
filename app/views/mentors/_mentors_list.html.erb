@@ -1,0 +1,116 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
+  <% @mentors.each do |mentor| %>
+    <%= link_to mentor.user, class: "block text-gray-900" do %>
+      <div class="flex items-center bg-white p-4 rounded-lg border border-gray-200 shadow-md 
+                  hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+
+        <!-- Mentor Info (Stacked) -->
+        <div class="ml-4">
+          <h3 class="text-lg font-bold text-gray-800">
+            <%= mentor.user.first_name %> <%= mentor.user.last_name %>
+          </h3>
+          <p class="text-sm text-gray-600 mt-1">
+            <strong>Profession:</strong> <%= mentor.profession.presence || "N/A" %>
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <strong>Mentor Type:</strong> <%= mentor.mentor_type&.name.presence || "N/A" %>
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <strong>Specialty:</strong> <%= mentor.specialties.any? ? mentor.specialties.map(&:name).join(', ') : "N/A" %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<!-- Pagination Controls -->
+<%= will_paginate @mentors, 
+  previous_label: '‹', 
+  next_label: '›', 
+  inner_window: 2, 
+  outer_window: 2, 
+  class: 'pagination flex flex-wrap justify-center gap-1', 
+  page_links: true, 
+  link_class: 'px-3 py-1 rounded border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-700 text-center min-w-[2.25rem]', 
+  active_class: 'bg-purple-600 text-white border-purple-700', 
+  disabled_class: 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed', 
+  gap_class: 'px-2', 
+  url: mentors_path(query: params[:query], search_type: params[:search_type], mentor_type: params[:mentor_type], specialty: params[:specialty], page: params[:page]) # Use mentors_path instead of search URL
+%>
+
+
+<!-- Styles -->
+<style>
+  /* Enhanced Pagination Styling */
+  .pagination {
+    display: flex;
+    gap: 0.25rem;  /* Reduced gap for tighter layout */
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Allows pagination to wrap on small screens */
+  }
+
+  .pagination a,
+  .pagination span,
+  .pagination em,
+  .pagination .page {
+    padding: 0.5rem 0.75rem;  /* Slightly less horizontal padding */
+    border-radius: 0.25rem;    /* Smaller radius for more square look */
+    text-decoration: none;
+    display: inline-block;
+    min-width: 2.5rem;         /* Adjusted width for better spacing */
+    text-align: center;
+    border: 1px solid #e5e7eb; /* Add border */
+    margin: 0.125rem;         /* Small margin between items */
+    box-sizing: border-box;   /* Ensures padding and borders are included in total width */
+  }
+
+  .pagination a {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    transition: all 0.2s ease;
+    border: 1px solid #d1d5db; /* Slightly darker border */
+  }
+
+  .pagination a:hover {
+    background-color: #e5e7eb;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .pagination .current,
+  .pagination .active {
+    background-color: #8a65c5;
+    color: white;
+    font-weight: 500;
+    border-color: #7c5ab3;    /* Matching border */
+  }
+
+  .pagination .disabled {
+    color: #9ca3af;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .pagination .gap {
+    padding: 0.5rem;
+    border: none;
+  }
+
+  /* Navigation arrows (prev/next) */
+  .pagination .previous_page,
+  .pagination .next_page {
+    min-width: auto;  /* Don't force width on arrows */
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* First/last page buttons */
+  .pagination .first,
+  .pagination .last {
+    min-width: auto;
+    padding: 0.5rem 0.75rem;
+  }
+</style>

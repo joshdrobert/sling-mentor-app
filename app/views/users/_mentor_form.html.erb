@@ -1,0 +1,198 @@
+<%= form_with(model: mentor, local: true, html: { id: 'mentor_form', class: 'max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md' }) do |form| %>
+  <% if mentor.errors.any? %>
+    <div class="bg-red-100 text-red-700 p-4 rounded-md mb-4">
+      <h2 class="font-semibold"><%= pluralize(mentor.errors.count, "error") %> prohibited this mentor from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% mentor.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form.fields_for :user do |user_form| %>
+    <%= user_form.hidden_field :id %>
+
+    <%= user_form.hidden_field :isAdmin, value: mentor.user.isAdmin? %>
+    
+    <div class="mb-4">
+      <%= user_form.label :first_name, "First Name", class: "block font-medium text-gray-700" %>
+      <%= user_form.text_field :first_name, value: mentor.user.first_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div class="mb-4">
+      <%= user_form.label :last_name, "Last Name", class: "block font-medium text-gray-700" %>
+      <%= user_form.text_field :last_name, value: mentor.user.last_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div class="mb-4">
+      <%= user_form.label :email, "User Email", class: "block font-medium text-gray-700" %>
+      <%= user_form.email_field :email, required: true, pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", value: mentor.user.email, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+    </div>
+
+    <div>
+      <%= user_form.label :phone_number, "Phone Number (Optional)", class: "block font-medium text-gray-700" %>
+      <%= user_form.telephone_field :phone_number, 
+          value: mentor.user.phone_number, 
+          class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300",
+          pattern: "^\\d{10}$", 
+          placeholder: "1234567890", 
+          title: "Please enter a 10-digit phone number",
+          style: "width: 100%;",
+          maxlength: "10"
+      %>
+    </div>
+  <% end %>
+
+  <div class="mb-4">
+    <%= form.label :mentor_type_id, "Mentor Type", class: "block font-medium text-gray-700" %>
+    <%= form.collection_select :mentor_type_id, MentorType.all, :id, :name, { selected: mentor.mentor_type_id || MentorType.first&.id }, { id: "mentor_mentor_type_id", class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" } %>
+  </div>
+
+  <!-- Specialties as Toggle Buttons -->
+  <div class="mb-4">
+    <%= form.label :specialty_ids, "Specialties", class: "block font-medium text-gray-700" %>
+    <div id="specialties-container" class="flex flex-wrap gap-2 mt-2">
+      <% if mentor.mentor_type_id || MentorType.first %>
+        <% Specialty.where(mentor_type_id: mentor.mentor_type_id || MentorType.first.id).each do |specialty| %>
+          <button type="button" class="specialty-button px-4 py-2 border rounded-md transition hover:bg-gray-200 <%= 'bg-blue-500 text-white' if mentor.specialty_ids.include?(specialty.id) %>"
+                  data-id="<%= specialty.id %>">
+            <%= specialty.name %>
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+    <div id="specialty-hidden-inputs">
+      <% mentor.specialty_ids.each do |id| %>
+        <%= form.hidden_field :specialty_ids, multiple: true, value: id %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :profession, "Profession", class: "block font-medium text-gray-700" %>
+    <%= form.text_field :profession, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+  </div>
+
+  <div class="flex justify-end">
+    <%= form.submit "Save Mentor Info", class: "px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Form elements
+  const mentorForm = document.getElementById('mentor_form');
+  const mentorTypeSelect = document.getElementById('mentor_mentor_type_id');
+  const specialtiesContainer = document.getElementById('specialties-container');
+  const specialtyHiddenInputs = document.getElementById('specialty-hidden-inputs');
+  const phoneNumberInput = document.querySelector('input[type="tel"]');
+
+  // Initialize specialties based on current mentor type
+  function populateSpecialties(mentorTypeId, selectedSpecialtyIds = []) {
+    if (!mentorTypeId) {
+      specialtiesContainer.innerHTML = '';
+      specialtyHiddenInputs.innerHTML = '';
+      return;
+    }
+
+    fetch(`/mentors/specialties?mentor_type_id=${mentorTypeId}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        specialtiesContainer.innerHTML = '';
+        specialtyHiddenInputs.innerHTML = '';
+
+        data.specialties.forEach(specialty => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'specialty-button px-4 py-2 border rounded-md transition hover:bg-gray-200';
+          button.textContent = specialty.name;
+          button.dataset.id = specialty.id;
+
+          // Mark as selected if it was previously selected
+          if (selectedSpecialtyIds.includes(specialty.id.toString())) {
+            button.classList.add('bg-blue-500', 'text-white');
+            addHiddenInput(specialty.id);
+          }
+
+          button.addEventListener('click', function() {
+            this.classList.toggle('bg-blue-500');
+            this.classList.toggle('text-white');
+            updateSpecialtiesInput(this.dataset.id, this.classList.contains('bg-blue-500'));
+          });
+
+          specialtiesContainer.appendChild(button);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching specialties:', error);
+        specialtiesContainer.innerHTML = '<p class="text-red-500">Error loading specialties</p>';
+      });
+  }
+
+  function addHiddenInput(id) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'mentor[specialty_ids][]';
+    input.value = id;
+    specialtyHiddenInputs.appendChild(input);
+  }
+
+  function removeHiddenInput(id) {
+    const inputs = document.querySelectorAll(`input[name="mentor[specialty_ids][]"][value="${id}"]`);
+    inputs.forEach(input => input.remove());
+  }
+
+  function updateSpecialtiesInput(id, isSelected) {
+    if (isSelected) {
+      addHiddenInput(id);
+    } else {
+      removeHiddenInput(id);
+    }
+  }
+
+  function validatePhoneNumber() {
+    if (!phoneNumberInput.value) return true;
+    return /^\d{10}$/.test(phoneNumberInput.value);
+  }
+
+  // Form submission handler
+  mentorForm.addEventListener('submit', function(event) {
+    phoneNumberInput.setCustomValidity("");
+    
+    if (phoneNumberInput.value && !validatePhoneNumber()) {
+      event.preventDefault();
+      phoneNumberInput.setCustomValidity("Please enter exactly 10 digits (no spaces or special characters)");
+      phoneNumberInput.reportValidity();
+      return;
+    }
+
+    if (document.querySelectorAll('input[name="mentor[specialty_ids][]"]').length === 0) {
+      event.preventDefault();
+      alert("Please select at least one specialty");
+    }
+  });
+
+  // Mentor type change handler
+  mentorTypeSelect.addEventListener('change', function() {
+    const currentSpecialties = Array.from(document.querySelectorAll('input[name="mentor[specialty_ids][]"]'))
+      .map(input => input.value);
+    populateSpecialties(this.value, currentSpecialties);
+  });
+
+  // Phone number input - allow only digits
+  phoneNumberInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '');
+    phoneNumberInput.setCustomValidity("");
+  });
+
+  // Initialize with current mentor type's specialties
+  const initialMentorTypeId = mentorTypeSelect.value;
+  const currentSpecialties = Array.from(document.querySelectorAll('input[name="mentor[specialty_ids][]"]'))
+    .map(input => input.value);
+  populateSpecialties(initialMentorTypeId, currentSpecialties);
+});
+</script>

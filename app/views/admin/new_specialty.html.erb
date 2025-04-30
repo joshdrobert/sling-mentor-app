@@ -1,0 +1,77 @@
+<!-- app/views/admin/new_specialty.html.erb -->
+<div class="container mx-auto px-4 py-6">
+  <!-- Header -->
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold mb-4">Add New Specialty</h1>
+  </header>
+
+  <!-- Form Section -->
+  <section class="bg-white rounded-lg shadow mb-6">
+    <div class="border-b border-gray-200 px-6 py-4">
+      <h2 class="text-lg font-medium">Specialty Details</h2>
+    </div>
+    <div class="p-6">
+      <%= form_with model: @specialty, url: specialties_path, method: :post, class: 'mb-0' do |f| %>
+        <% if @specialty.errors.any? %>
+          <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  <%= pluralize(@specialty.errors.count, "error") %> prohibited this specialty from being saved:
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul class="list-disc pl-5 space-y-1">
+                    <% @specialty.errors.full_messages.each do |message| %>
+                      <li><%= message %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Name Field -->
+          <div class="col-span-2">
+            <%= f.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.text_field :name, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50", placeholder: "Full name of the specialty" %>
+          </div>
+
+          <!-- Short Name Field -->
+          <div class="col-span-1">
+            <%= f.label :short_name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.text_field :short_name, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50", placeholder: "Abbreviation or short name" %>
+          </div>
+
+          <!-- Mentor Type Field -->
+          <div class="col-span-1">
+            <%= f.label :mentor_type_id, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.collection_select :mentor_type_id, MentorType.all, :id, :name, {prompt: "Select a mentor type"}, {class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} %>
+          </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-end mt-6">
+          <%= link_to 'Cancel', specialties_path, class: "inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3" %>
+          <%= f.submit "Create Specialty", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Back Link -->
+  <div class="mt-4">
+    <%= link_to admin_index_path, class: "inline-flex items-center text-indigo-600 hover:text-indigo-900" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Back to Administration
+    <% end %>
+  </div>
+</div>

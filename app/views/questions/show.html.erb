@@ -1,0 +1,104 @@
+<div class="question-container">
+    <div class="question-wrapper">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; position: relative">
+            <%= link_to questions_path, class: 'btn btn-back', style: "position: absolute; left: -40px;" do %>
+                ←
+            <% end %>
+            <%= link_to user_path(@question.user), style: "color: inherit; display: flex; gap: 8px; align-items:center; justify-items: center;" do %>
+
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
+                 alt="Default Profile Picture"
+                 style="width: 30px; height: 30px; border-radius: 50%;">
+                <span style="margin: 0; font-weight: 600;">
+                    <%= @question.user.email.split('@').first %> (<%= @question.user.role.capitalize %>)
+                </span>
+            <% end %>
+            <p style="color: #8ba2ad;">•</p>
+            <p style="color: #8ba2ad;"><%= time_ago_in_words(@question.updated_at).gsub("about ", "").gsub("less than a", "< 1") %> ago</p>
+
+            <div class="dropdown-container" style="position: relative; display: inline-block; margin-left: auto;
+                <%= current_user == @question.user || current_user&.isAdmin == true ? '' : 'pointer-events: none; color: lightgray;' %>">
+                <button class="dropdown-toggle" style="background: none; border: none; font-size: 20px; cursor: pointer;">•••</button>
+                <div class="hidden dropdown-menu">
+                    <% if @question.comments.length < 1 && current_user == @question.user %>
+                        <%= link_to "Edit", edit_question_path(@question), class: "dropdown-item edit-btn" %>
+                    <% end %>
+                    <%= button_to "Delete", question_path(@question), method: :delete, data: { confirm: "Are you sure?" }, class: "dropdown-item delete-btn" %>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 5px; margin-bottom: -12px;">
+            <div class="bubble"><%= @question.mentor_type.short_name %></div>
+            <% if @question.specialty.present? %>
+                <div class="bubble"><%= @question.specialty.short_name %></div>
+            <% end %>
+        </div>
+
+        <p class="card-text-1"><%= @question.question %></p>
+        <p class="card-text-2"><%= @question.description %></p>
+
+        <div style="margin-top: 25px; margin-left: auto;">
+            <p style="color: #8ba2ad; margin-top: auto;">
+                <%= @question.comments.count %> comments
+            </p>
+        </div>
+
+        <%= form_with model: [@question, Comment.new] do |form| %>
+            <div style="margin-top: 5px; display: flex; gap: 10px; align-items: center; position: relative;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg" alt="Default Profile Picture" style="width: 30px; height: 30px; border-radius: 50%;">
+                <%= form.text_area :content, placeholder: "Write a comment...", class: "comment-input", id: "comment-input", style: "width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;", minlength: 5 %>
+                <%= form.submit "Submit", class: "comment-submit", style: "padding: 6px 10px; position: absolute; right: 12px; bottom: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;" %>
+            </div>
+        <% end %>
+
+        <div class="comments-list" style="margin-top: 20px;">
+            <% @question.comments.includes(:user).order(created_at: :desc).each do |comment| %>
+                <div class="comment" style="margin-bottom: 15px; padding: 10px; border-bottom: 2px solid #eee;">
+                    <div style="display: flex; align-items:center; justify-content: space-between;">
+                        <div>
+                            <div style="display: flex; gap: 8px; align-items:center;">
+                            <%= link_to user_path(comment.user), style: " color: inherit; display: flex; gap: 8px; align-items:center; justify-items: center;" do %>
+
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg" alt="Default Profile Picture" style="width: 30px; height: 30px; border-radius: 50%;">
+                                <span style="font-weight: 600;"><%= comment.user.email.split('@').first %>  (<%= comment.user.role.capitalize %>)</span>
+                            <% end %>
+                                <span style="color: #8ba2ad;">•</span>
+                                <p style="color: #8ba2ad;"><%= time_ago_in_words(comment.created_at).gsub("about ", "").gsub("less than a", "< 1") %> ago</p>
+                            </div>
+                            
+                            <div style="margin-left: 38px;">
+                                <%= comment.content %>
+                            </div>
+                        </div>
+                        <div>
+                            <% if current_user == comment.user || current_user&.isAdmin == true %>
+                                <%= button_to question_comment_path(@question, comment), method: :delete, data: { confirm: "Are you sure?" }, class: "delete-comment-btn", style: "background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px;" do %>
+                                    Delete
+                                <% end %>
+                            <% end %>
+                            <% if current_user != comment.user %>
+                            <%= button_tag "Reply", 
+                                class: "reply-comment-btn", 
+                                style: "background: none; border: none; color: #007bff; cursor: pointer; font-size: 14px;", 
+                                disabled: current_user.nil?, 
+                                onclick: "setReplyUsername('#{comment.user.email.split('@').first}')" %>
+                            <% end %>
+                        </div>
+                    </div>
+                    
+                </div>
+            <% end %>
+        </div>
+    </div>
+</div>
+
+<script>
+function setReplyUsername(username) {
+    const textarea = document.getElementById("comment-input");
+    if (textarea) {
+        textarea.value = `@${username} `;
+        textarea.focus();
+    }
+}
+</script>

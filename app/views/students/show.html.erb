@@ -1,0 +1,9 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @student %>
+
+<% if current_user && current_user.student && @student.id == current_user.student.id %>
+  <div class="text-center">
+    <%= link_to 'Edit Your Info', edit_student_path(@student), class: "bg-blue-500 text-white px-4 py-2 rounded" %>
+  </div>
+<% end %>

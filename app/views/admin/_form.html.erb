@@ -1,0 +1,229 @@
+<%= form_with(model: @user, 
+              url: @user.persisted? ? admin_path(@user) : admin_index_path, 
+              method: @user.persisted? ? :patch : :post, 
+              local: true, 
+              html: { class: 'max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md' }) do |form| %>
+
+  <% if @user.errors.any? %>
+    <div class="bg-red-100 text-red-700 p-4 rounded-md mb-4">
+      <h2 class="font-semibold"><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% @user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- User Type Selection -->
+  <div class="mb-6">
+    <label class="block font-medium text-gray-700 mb-2">User Type</label>
+    <div class="flex space-x-4">
+      <div class="flex items-center">
+        <%= form.radio_button :role, 'student', checked: @user.role == 'student' || @user.new_record?, 
+            class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300", 
+            data: { action: "change->role-switcher#toggleRole" } %>
+        <%= form.label :role_student, "Student", class: "ml-2 text-sm text-gray-700" %>
+      </div>
+      <div class="flex items-center">
+        <%= form.radio_button :role, 'mentor', checked: @user.role == 'mentor',
+            class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300",
+            data: { action: "change->role-switcher#toggleRole" } %>
+        <%= form.label :role_mentor, "Mentor", class: "ml-2 text-sm text-gray-700" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Common user fields -->
+  <div class="mb-4">
+    <%= form.label :first_name, "First Name", class: "block font-medium text-gray-700" %>
+    <%= form.text_field :first_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :last_name, "Last Name", class: "block font-medium text-gray-700" %>
+    <%= form.text_field :last_name, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :email, "Email", class: "block font-medium text-gray-700" %>
+    <%= form.email_field :email, required: true, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :phone_number, "Phone Number", class: "block font-medium text-gray-700" %>
+    <%= form.telephone_field :phone_number, 
+        class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300",
+        placeholder: "1234567890",
+        maxlength: "10" %>
+  </div>
+
+  <% if current_user.isAdmin? %>
+    <div class="mb-4">
+      <div class="flex items-center">
+        <%= form.check_box :isAdmin, { class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" } %>
+        <%= form.label :isAdmin, "Admin Privileges", class: "ml-2 text-sm text-gray-700" %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Student specific fields -->
+  <div id="student-fields" class="<%= @user.role == 'mentor' ? 'hidden' : '' %>">
+    <%= form.fields_for :student do |student_form| %>
+      <div class="mb-4">
+        <%= student_form.label :major, "Major", class: "block font-medium text-gray-700" %>
+        <%= student_form.text_field :major, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+      </div>
+
+      <div class="mb-4">
+        <%= student_form.label :classification, "Classification", class: "block font-medium text-gray-700" %>
+        <%= student_form.select :classification, 
+              [['Freshman', 'Freshman'], ['Sophomore', 'Sophomore'], ['Junior', 'Junior'], ['Senior', 'Senior'], ['Graduate', 'Graduate']], 
+              { prompt: "Select Classification" }, 
+              { class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" } %>
+      </div>
+
+      <div class="mb-4">
+        <%= student_form.label :mentor_type_id, "Specialty Type", class: "block font-medium text-gray-700" %>
+        <%= student_form.collection_select :mentor_type_id, MentorType.all, :id, :name, 
+              { prompt: "Select Mentor Type" }, 
+              { class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300 student-mentor-type" } %>
+      </div>
+
+      <div class="mb-4">
+        <%= student_form.label :specialty_ids, "Specialties", class: "block font-medium text-gray-700" %>
+        <div class="student-specialties-container mt-2 grid grid-cols-2 gap-2">
+          <p class="text-gray-500">Select a mentor type to view specialties</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Mentor specific fields -->
+  <div id="mentor-fields" class="<%= @user.role == 'student' || @user.new_record? ? 'hidden' : '' %>">
+    <%= form.fields_for :mentor do |mentor_form| %>
+      <div class="mb-4">
+        <%= mentor_form.label :profession, "Profession", class: "block font-medium text-gray-700" %>
+        <%= mentor_form.text_field :profession, class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300" %>
+      </div>
+
+      <div class="mb-4">
+        <%= mentor_form.label :mentor_type_id, "Mentor Type", class: "block font-medium text-gray-700" %>
+        <%= mentor_form.collection_select :mentor_type_id, MentorType.all, :id, :name, 
+              { prompt: "Select Mentor Type" }, 
+              { class: "w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-300 mentor-mentor-type" } %>
+      </div>
+
+      <div class="mb-4">
+        <%= mentor_form.label :specialty_ids, "Specialties", class: "block font-medium text-gray-700" %>
+        <div class="mentor-specialties-container mt-2 grid grid-cols-2 gap-2">
+          <p class="text-gray-500">Select a mentor type to view specialties</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex justify-between mt-6">
+    <%= link_to 'Cancel', :back, class: "px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400" %>
+    <%= form.submit @user.persisted? ? "Update User" : "Create User", class: "px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Role switching
+  const studentFields = document.getElementById('student-fields');
+  const mentorFields = document.getElementById('mentor-fields');
+  const roleInputs = document.querySelectorAll('input[name="user[role]"]');
+  
+  roleInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      if (this.value === 'student') {
+        studentFields.classList.remove('hidden');
+        mentorFields.classList.add('hidden');
+      } else if (this.value === 'mentor') {
+        mentorFields.classList.remove('hidden');
+        studentFields.classList.add('hidden');
+      }
+    });
+  });
+  
+  // Mentor type change handlers
+  const studentMentorTypeSelect = document.querySelector('.student-mentor-type');
+  const mentorMentorTypeSelect = document.querySelector('.mentor-mentor-type');
+  const studentSpecialtiesContainer = document.querySelector('.student-specialties-container');
+  const mentorSpecialtiesContainer = document.querySelector('.mentor-specialties-container');
+  
+  if (studentMentorTypeSelect) {
+    studentMentorTypeSelect.addEventListener('change', function() {
+      loadSpecialties(this.value, studentSpecialtiesContainer, 'user[student_attributes][specialty_ids][]');
+    });
+  }
+  
+  if (mentorMentorTypeSelect) {
+    mentorMentorTypeSelect.addEventListener('change', function() {
+      loadSpecialties(this.value, mentorSpecialtiesContainer, 'user[mentor_attributes][specialty_ids][]');
+    });
+  }
+  
+  function loadSpecialties(mentorTypeId, container, fieldName) {
+    if (!mentorTypeId) {
+      container.innerHTML = '<p class="text-gray-500">Select a mentor type to view specialties</p>';
+      return;
+    }
+    
+    fetch(`/specialties.json?mentor_type_id=${mentorTypeId}`)
+      .then(response => response.json())
+      .then(specialties => {
+        container.innerHTML = '';
+        
+        if (specialties.length === 0) {
+          container.innerHTML = '<p class="text-gray-500">No specialties available for this mentor type</p>';
+          return;
+        }
+        
+        specialties.forEach(specialty => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center';
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.name = fieldName;
+          checkbox.value = specialty.id;
+          checkbox.id = `specialty-${specialty.id}-${fieldName.includes('student') ? 'student' : 'mentor'}`;
+          checkbox.className = 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2';
+          
+          const label = document.createElement('label');
+          label.htmlFor = checkbox.id;
+          label.className = 'text-sm text-gray-700';
+          label.textContent = specialty.name;
+          
+          div.appendChild(checkbox);
+          div.appendChild(label);
+          container.appendChild(div);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching specialties:', error);
+        container.innerHTML = '<p class="text-red-500">Error loading specialties</p>';
+      });
+  }
+  
+  // Phone number formatting
+  const phoneInput = document.querySelector('input[type="tel"]');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
+  
+  // Initialize specialties if mentor type is already selected
+  if (studentMentorTypeSelect && studentMentorTypeSelect.value) {
+    loadSpecialties(studentMentorTypeSelect.value, studentSpecialtiesContainer, 'user[student_attributes][specialty_ids][]');
+  }
+  
+  if (mentorMentorTypeSelect && mentorMentorTypeSelect.value) {
+    loadSpecialties(mentorMentorTypeSelect.value, mentorSpecialtiesContainer, 'user[mentor_attributes][specialty_ids][]');
+  }
+});
+</script>

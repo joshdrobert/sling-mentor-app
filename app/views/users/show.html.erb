@@ -1,0 +1,6 @@
+<% puts @userSubtype %>
+<% if @userSubtype == "mentor" %>
+  <%= render partial: 'mentors/mentor', locals: { mentor: @userSub } %>
+<% else %>
+  <%= render partial: 'students/student', locals: { student: @userSub } %>
+<% end %>

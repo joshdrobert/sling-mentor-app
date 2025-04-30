@@ -1,0 +1,40 @@
+<%= form_with(model: mentor) do |form| %>
+  <% if mentor.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(mentor.errors.count, "error") %> prohibited this mentor from being saved:</h2>
+
+      <ul>
+        <% mentor.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form.fields_for :user do |user_form| %>
+    <%= user_form.hidden_field :id %> <!-- Hidden field to keep track of existing user ID -->
+  <div>
+    <%= user_form.label :first_name, "First Name", style: "display: block" %>
+    <%= user_form.text_field :first_name, value: mentor.user.first_name %>
+  </div>
+
+  <div>
+    <%= user_form.label :last_name, "Last Name", style: "display: block" %>
+    <%= user_form.text_field :last_name, value: mentor.user.last_name %>
+  </div>
+
+  <div>
+    <%= user_form.label :email, "User Email", style: "display: block" %>
+    <%= user_form.email_field :email, required: true, pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", value: mentor.user.email %>
+  </div>
+  <% end %>
+
+  <div>
+    <%= form.label :profession, style: "display: block" %>
+    <%= form.text_field :profession %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

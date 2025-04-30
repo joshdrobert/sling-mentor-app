@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SlingHealth Mentors</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= favicon_link_tag "favicon.ico" %>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+    <meta name="google-site-verification" content="OdpRaHUI7AH3iYCCcniLdq_cJm42sS7vxh1Z1Pnojg0" />
+
+    
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+      
+      /* Navbar heights */
+      .h-18 {
+        height: 4.5rem; 
+      }
+      
+      /* Purple theme color */
+      .bg-sling-purple {
+        background-color: #a27adb;
+      }
+      
+      .hover\:bg-sling-purple-dark:hover {
+        background-color: #6d4ba5;
+      }
+      
+      .border-sling-purple-light {
+        border-color: #b894e3;
+      }
+      :root {
+        --primary: #8a65c5;       /* Slightly darker purple for better contrast */
+        --primary-dark: #6d4ba5;  /* Darker purple for hover states */
+        --primary-light: #b894e3; /* Light purple for borders */
+        --accent: #5e91f2;        /* Blue accent for secondary elements */
+        --text-on-dark: #ffffff;  /* White text on dark backgrounds */
+        --text-primary: #333333;  /* Dark gray for primary text */
+        --background: #f5f7fa;    /* Slightly blue tinted background instead of plain gray */
+      }
+
+      body {
+        background-color: var(--background);
+      }
+
+      
+      .bg-sling-purple {
+        background-color: var(--primary);
+      }
+
+      .hover\:bg-sling-purple-dark:hover {
+        background-color: var(--primary-dark);
+      }
+
+      .border-sling-purple-light {
+        border-color: var(--primary-light);
+      }
+
+      /* Button styles */
+      .btn-primary {
+        background-color: var(--primary);
+        color: var(--text-on-dark);
+        transition: all 0.2s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Alert styles */
+      .alert-success {
+        background-color: #e6f7ec;
+        border-color: #57c583;
+        color: #2a7d4d;
+      }
+
+      /* Link styling */
+      a {
+        color: var(--primary);
+        transition: color 0.2s ease;
+      }
+
+      a:hover {
+        color: var(--primary-dark);
+      }
+
+      /* Card styling */
+      .card {
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Logo styling */
+      .logo-container {
+        display: flex;
+        align-items: center;
+      }
+      
+      .logo-image {
+        height: 40px;
+        width: auto;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-gray-50">
+    <!-- Navigation Bar -->
+    <header class="shadow-md bg-sling-purple">
+      <div class="mx-auto max-w-7xl">
+        <!-- Main Navigation Row -->
+        <div class="flex items-center justify-between px-4 h-18 sm:px-6 lg:px-8">
+          <!-- Logo -->
+          <div class="flex items-center flex-shrink-0">
+            <a href="<%= root_path %>" class="flex items-center">
+              <div class="logo-container">
+                <%= image_tag "logo-purple-icon.png", alt: "SlingHealth Logo", class: "logo-image" %>
+                <span class="text-2xl font-bold tracking-tight text-white">SlingHealth Mentors</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Desktop Navigation - Always visible -->
+          <% if session[:user_id] and User.exists?(session[:user_id]) %>
+            <div class="flex items-center md:space-x-6">
+              <%= link_to "See Mentors", mentors_path, class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+              <%= link_to "Questions", questions_path, class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+              <% if current_user.isAdmin == true %>
+                <%= link_to "Admin Console", admin_index_path, class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+              <% end %>
+              <%= link_to "Profile", user_index_path, class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+              <%= link_to "Documentation", "/slinghealth_documentation.pdf", target: "_blank", class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+              <%= link_to "Sign out", logout_path, data: { turbo_method: :delete }, class: "px-3 py-1.5 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark rounded transition-colors" %>
+            </div>
+          <% end %>
+          
+          <!-- Menu Button -->
+          <div class="flex items-center">
+            <% if !session[:user_id] or !User.exists?(session[:user_id]) %>
+              <!-- Login Button - Always Visible -->
+              <%= button_to "/auth/google_oauth2", method: :post, data: { turbo: false }, class: "flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium bg-white text-gray-700 hover:bg-gray-50" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Login
+              <% end %>
+            <% else %>
+              <!-- Hamburger menu button - Only visible on small screens -->
+              <button id="menu-toggle-button" class="inline-flex items-center justify-center p-2 text-white transition-colors rounded-md md:hidden hover:bg-white hover:text-sling-purple-dark focus:outline-none focus:ring-1 focus:ring-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span class="sr-only">Menu</span>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Menu -->
+      <% if session[:user_id] and User.exists?(session[:user_id]) %>
+        <div id="mobile-menu" class="hidden border-t md:hidden border-sling-purple-light bg-sling-purple">
+          <div class="px-2 pt-2 pb-3 space-y-1">
+            <%= link_to "See Mentors", mentors_path, class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+            <%= link_to "Questions", questions_path, class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+            <% if current_user.isAdmin == true %>
+              <%= link_to "Admin Console", admin_index_path, class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+            <% end %>
+            <%= link_to "Profile", user_index_path, class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+            <%= link_to "Documentation", "/slinghealth_documentation.pdf", target: "_blank", class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+            <%= link_to "Sign out", logout_path, data: { turbo_method: :delete }, class: "block w-full px-3 py-2 text-base font-medium text-white hover:bg-white hover:text-sling-purple-dark" %>
+          </div>
+        </div>
+      <% end %>
+    </header>
+
+    <!-- Alert messages -->
+    <% if notice %>
+      <div class="px-4 py-2 mx-auto mt-4 max-w-7xl">
+        <div class="p-4 border-l-4 border-green-400 bg-green-50">
+          <p class="text-green-700"><%= notice %></p>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Main content -->
+    <main>
+      <div class="px-4 py-6 mx-auto max-w-7xl">
+        <%= yield %>
+      </div>
+    </main>
+
+    <!-- JavaScript for Menu Toggle -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuToggleButton = document.getElementById('menu-toggle-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        // Toggle mobile menu
+        if (menuToggleButton && mobileMenu) {
+          menuToggleButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
